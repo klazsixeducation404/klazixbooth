@@ -1,0 +1,15 @@
+{
+  "name": "KLAZIX Booth",
+  "short_name": "KLAZIX Booth",
+  "description": "Photo booth KLAZIX® CREATIVE CO.",
+  "start_url": "./index.html#booth",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "any",
+  "background_color": "#f3e3c3",
+  "theme_color": "#c8553d",
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
+  ]
+}

@@ -193,6 +193,30 @@ body.retro .lay .th .boomI{background:repeating-linear-gradient(180deg,var(--rus
 .spin{width:54px;height:54px;border-radius:50%;border:5px solid #ffffff30;border-top-color:#fff;animation:sp 0.9s linear infinite;margin:0 auto 14px}
 @keyframes sp{to{transform:rotate(360deg)}}
 
+/* ---------- KAD SD ---------- */
+#cardsel{background:var(--bg)}
+.csIn{position:absolute;inset:0;display:flex;flex-direction:column;padding:calc(16px + env(safe-area-inset-top)) 18px calc(14px + env(safe-area-inset-bottom))}
+.csHead{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.csHead h2{margin:0;font-size:24px;font-weight:800}
+.csHead p{margin:2px 0 0;color:var(--mut);font-size:14px}
+.csGrid{flex:1;overflow:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;padding:16px 2px;align-content:start}
+.csT{position:relative;aspect-ratio:3/2;border-radius:12px;overflow:hidden;background:#1a1e2a;border:3px solid transparent;cursor:pointer;transition:transform .12s}
+.csT:active{transform:scale(.96)}
+.csT canvas,.csT img{width:100%;height:100%;object-fit:cover;display:block}
+.csT.sel{border-color:var(--acc);box-shadow:0 0 0 3px var(--acc2)}
+.csT .no{position:absolute;top:8px;left:8px;width:32px;height:32px;border-radius:50%;background:var(--acc);color:#fff;font-weight:800;display:none;place-items:center;box-shadow:0 2px 8px #0008}
+.csT.sel .no{display:grid}
+.csT .tm{position:absolute;right:6px;bottom:6px;font-size:11px;background:#000a;padding:2px 7px;border-radius:6px}
+.csEmpty{grid-column:1/-1;text-align:center;color:var(--mut);padding:50px 20px;line-height:1.7}
+.csEmpty b{color:var(--txt)}
+.csBar{display:flex;align-items:center;gap:14px;border-top:1px solid var(--line);padding-top:12px}
+.csPicked{flex:1;display:flex;gap:8px;overflow-x:auto}
+.csPicked .ps{width:78px;aspect-ratio:3/2;border-radius:8px;border:2px dashed var(--line2);display:grid;place-items:center;color:var(--mut);font-weight:800;flex:none;overflow:hidden}
+.csPicked .ps canvas,.csPicked .ps img{width:100%;height:100%;object-fit:cover}
+.csBusy{position:absolute;inset:0;background:#05060ad0;backdrop-filter:blur(8px);display:none;place-items:center;z-index:5}
+.csBusy.on{display:grid}
+#cardBox{display:none}#cardBox.on{display:block}
+@media (max-width:600px){.csGrid{grid-template-columns:repeat(auto-fill,minmax(120px,1fr))}.csHead .btn{flex:1}.csBar{flex-direction:column;align-items:stretch}}
 /* ---------- REVIEW ---------- */
 #review{background:radial-gradient(ellipse at 30% 20%,#1d2233,#0b0d13 70%)}
 .revIn{position:absolute;inset:0;display:grid;grid-template-columns:1fr 380px;gap:0}
@@ -490,6 +514,24 @@ code,.kbd{background:#ffffff12;padding:2px 7px;border-radius:6px;font-size:12.5p
   </div>
 </section>
 
+<!-- ================= KAD SD / IMPORT ================= -->
+<section id="cardsel" class="screen">
+  <div class="csIn">
+    <div class="csHead">
+      <button class="round glass" onclick="cancelCard()" data-i="left"></button>
+      <div style="flex:1;min-width:0"><h2 id="csTitle">Pilih gambar</h2><p id="csSub"></p></div>
+      <button class="btn" id="csDirBtn" onclick="pickCardDir()"><span data-i="file"></span>Folder kad</button>
+      <button class="btn" onclick="$('csFile').click()"><span data-i="image"></span>Pilih gambar</button>
+      <button class="btn icon" title="Muat semula" onclick="refreshCard(true)" data-i="refresh"></button>
+      <button class="round glass" onclick="askPin(()=>go('admin'))" data-i="lock" style="opacity:.6"></button>
+    </div>
+    <div id="csGrid" class="csGrid"></div>
+    <div class="csBar"><div id="csPicked" class="csPicked"></div><button class="btn pri lg" id="csGo" onclick="cardGo()" disabled><span data-i="sparkle"></span>Siapkan gambar</button></div>
+  </div>
+  <div id="csBusy" class="csBusy"><div style="text-align:center"><div class="spin"></div><b>Menyiapkan gambar…</b></div></div>
+  <input type="file" id="csFile" accept="image/jpeg,image/png,image/webp" multiple hidden>
+</section>
+
 <!-- ================= REVIEW ================= -->
 <section id="review" class="screen">
   <div class="revIn">
@@ -592,18 +634,16 @@ code,.kbd{background:#ffffff12;padding:2px 7px;border-radius:6px;font-size:12.5p
             <div class="trow" style="margin-top:12px;border-top:1px solid var(--line)"><div><b>Logo skrin mula</b><small>PNG lutsinar disyorkan</small></div><div style="display:flex;gap:8px"><button class="btn sm" onclick="pickLogo()"><span data-i="upload"></span>Pilih</button><button class="btn sm ghost" onclick="clearLogo()">Buang</button></div></div>
           </div>
           <div class="panel"><h3><span data-i="camera"></span>Kamera & sesi</h3><p class="d"></p>
-            <div class="fgrid" style="margin-bottom:14px">
-              <div class="f"><label>Mod kamera</label><select class="inp" data-s="camMode"><option value="webcam">Webcam / kamera peranti (iPad, telefon, laptop)</option><option value="dslr">📸 DSLR Fujifilm — gambar penuh + flash (MacBook)</option></select></div>
-            </div>
-            <div id="dslrBox" class="panel" style="margin:0 0 14px;background:var(--card2)">
-              <h3>📸 Mod DSLR</h3><p class="d">Perlu <b>Pembantu DSLR</b> berjalan di MacBook ini (folder <code>klazix-dslr</code> › dwiklik <code>Mula-Pembantu-DSLR.command</code>).</p>
-              <div class="fgrid">
-                <div class="f"><label>Pratonton untuk tetamu</label><select class="inp" data-s="dslrPreview"><option value="video">Capture card HDMI (lancar, disyorkan)</option><option value="helper">Live view kamera melalui USB (tanpa capture card)</option></select></div>
-                <div class="f"><label>Alamat pembantu</label><input class="inp" data-s="helperUrl"></div>
-              </div>
-              <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;align-items:center"><button class="btn sm" onclick="dslrReady(true)"><span data-i="refresh"></span>Semak pembantu</button><button class="btn sm pri" onclick="dslrTest()"><span data-i="camera"></span>Ambil gambar ujian</button><b id="dslrStat" style="font-size:13px"></b></div>
-              <div id="dslrTest"></div>
-              <p class="hint" style="margin-top:10px">Chrome mungkin bertanya <i>"access other apps and services on this device / local network"</i> — tekan <b>Allow</b>. Untuk pratonton capture card, pilih capture card dalam senarai <b>Kamera</b> di bawah.</p>
+            <div class="fgrid" style="margin-bottom:14px"><div class="f"><label>Sumber gambar</label><select class="inp" data-s="camMode">
+              <option value="webcam">📷 Webcam — tetamu bergambar sendiri di depan skrin</option>
+              <option value="card">💾 Kad SD / Import foto — gambar dari Fujifilm (dengan flash)</option></select></div></div>
+            <div id="cardBox" class="panel" style="margin:0 0 14px;background:var(--card2)"><h3>💾 Mod Kad SD</h3>
+              <ol class="steps" style="margin-top:8px">
+                <li><span>Ambil gambar dengan Fujifilm seperti biasa (flash, fokus, semua tetapan kamera anda).</span></li>
+                <li><span><b>MacBook:</b> masukkan kad SD ke card reader, atau sambung kamera dengan <b>CONNECTION MODE › USB CARD READER</b>. Tekan <b>Folder kad</b> dan pilih kad (atau folder DCIM) — sekali sahaja; gambar baharu muncul sendiri.</span></li>
+                <li><span><b>iPad / telefon:</b> import gambar ke Photos (Lightning SD Card Reader / XApp), kemudian tekan <b>Pilih gambar</b>.</span></li>
+                <li><span>Dalam booth: pilih susun atur › sentuh gambar mengikut susunan › <b>Siapkan gambar</b> › cetak / QR / WhatsApp / email.</span></li>
+              </ol>
             </div>
             <div class="camTest"><video id="camPrev" autoplay muted playsinline></video><div><b id="camStat" style="font-size:14px">…</b><p class="hint" style="margin:6px 0 10px">Kamera luar (Fujifilm, capture card) dikesan automatik bila disambung. Pilih di bawah.</p><button class="btn sm" onclick="startCamera()"><span data-i="refresh"></span>Mulakan semula kamera</button></div></div>
             <div class="fgrid">
@@ -934,11 +974,12 @@ async function ensureFonts(){if(!document.fonts)return;const fams=['Shrikhand','
   await Promise.race([Promise.all(loads),sleep(3000)]);}
 
 /* ======================= NAVIGATION ======================= */
-const KIOSK=['start','pick','live'];
+const KIOSK=['start','pick','live','cardsel'];
 function go(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id===id));
   document.body.classList.toggle('camoff',!(id==='live'||(S.startBg==='camera'&&KIOSK.includes(id))));
   if(id==='live')startFilterThumbs();else stopFilterThumbs();
+  if(id!=='cardsel')clearInterval(cardPoll);
   syncLiveImg(id==='live');
   if(id==='live'&&isDSLR())dslrReady();
   if(id==='admin')renderAdmin();
@@ -946,9 +987,9 @@ function go(id){
   resetIdle();
 }
 function launchBooth(){saveTpls();enterFS();go('start');}
-function kioskOptions(){const o=TPL.filter(t=>t.on).map(t=>({id:t.id,t}));if(S.boom&&!helperPrev())o.push({id:'boomerang'});return o;}
+function kioskOptions(){const o=TPL.filter(t=>t.on).map(t=>({id:t.id,t}));if(S.boom&&!helperPrev()&&!isCard())o.push({id:'boomerang'});return o;}
 function kioskBegin(){ac();const o=kioskOptions();if(!o.length){toast('Tiada template aktif','x');return;}if(o.length===1){S.mode=o[0].id;enterLive();}else go('pick');}
-function enterLive(){updatePill();go('live');}
+function enterLive(){if(isCard()){openCardSel();return;}updatePill();go('live');}
 function cancelLive(){if(busy)return;kioskOptions().length>1?go('pick'):go('start');}
 
 /* ======================= CAMERA ======================= */
@@ -1188,7 +1229,7 @@ function fileOf(c){return new File([c.blob],`klazix-${stamp()}.${c.type==='video
 function downloadCurrent(){dlBlob(current.blob,fileOf(current).name);toast('Disimpan');}
 async function shareCurrent(){try{await navigator.share({files:[fileOf(current)],title:S.title});}catch(e){}}
 function printCurrent(){printImage(current.url,current.pw,current.ph,copies);toast(`Mencetak ${copies} salinan…`,'printer');}
-function retake(){stopAuto();enterLive();setTimeout(startSession,350);}
+function retake(){stopAuto();if(isCard()){openCardSel();return;}enterLive();setTimeout(startSession,350);}
 function finish(){stopAuto();if($('sendModal').classList.contains('on'))closeSend();go('start');}
 
 /* ======================= PRINT ======================= */
@@ -1245,11 +1286,11 @@ async function delTpl(id){if(TPL.length<=1)return toast('Perlu sekurang-kurangny
 /* settings binding */
 function bindSettings(){
   $('sBoomTpl').innerHTML=TPL.map(t=>`<option value="${t.id}">${esc(t.name)}</option>`).join('');if(!tplById(S.boomTpl))S.boomTpl=(TPL.find(t=>t.paper==='4x4')||TPL[0])?.id;
-  fillCameras();if(stream)$('camPrev').srcObject=stream;applyMirror();dslrUI();if(isDSLR())dslrReady(true);
+  fillCameras();if(stream)$('camPrev').srcObject=stream;applyMirror();dslrUI();cardUI();if(isDSLR())dslrReady(true);
   document.querySelectorAll('[data-s]').forEach(el=>{const k=el.dataset.s;if(el.type==='checkbox')el.checked=!!S[k];else el.value=S[k]??'';
     if(el._b)return;el._b=1;el.addEventListener(el.type==='checkbox'||el.tagName==='SELECT'||el.type==='color'?'change':'input',()=>{
       let v=el.type==='checkbox'?el.checked:el.value;if(el.type==='number'){v=parseFloat(v);if(isNaN(v))return;v=Math.max(+el.min,Math.min(+el.max,v));}
-      const old=S[k];S[k]=v;saveS();applyTheme();if(k==='cam'&&old!==v)startCamera();if(['camMode','dslrPreview','helperUrl'].includes(k)){dslrUI();if(isDSLR())dslrReady(true);if(!helperPrev()&&!stream)startCamera();}if(k==='mirror'||k==='mirrorPhoto')applyMirror();});
+      const old=S[k];S[k]=v;saveS();applyTheme();if(k==='cam'&&old!==v)startCamera();if(k==='camMode'){cardUI();if(!isCard()&&!stream)startCamera();}if(['dslrPreview','helperUrl'].includes(k)){dslrUI();if(isDSLR())dslrReady(true);if(!helperPrev()&&!stream)startCamera();}if(k==='mirror'||k==='mirrorPhoto')applyMirror();});
     if(el.type==='color')el.addEventListener('input',()=>{S[k]=el.value;applyTheme();});});
 }
 function changePin(){const p=$('newPin').value.trim();if(!/^\d{4,8}$/.test(p))return toast('PIN mesti 4–8 digit','x');S.pin=p;saveS();$('newPin').value='';toast('PIN ditukar');}
@@ -1542,8 +1583,85 @@ $('fileImport').onchange=async()=>{
   }catch(e){toast('Fail template tidak sah','x');}
 };
 
+/* ======================= KAD SD / IMPORT FOTO ======================= */
+const isCard=()=>S.camMode==='card';
+function cardUI(){$('cardBox')?.classList.toggle('on',isCard());const ct=document.querySelector('.camTest');if(ct)ct.style.display=isCard()?'none':'';}
+let cardDir=null,cardFiles=[],cardSel=[],cardPoll=null,cardN=1,cardSrc='dir';
+const fkey=f=>f.name+'|'+f.size+'|'+f.lastModified;
+const thumbs=new Map();
+async function loadCardDir(){if(cardDir)return cardDir;try{cardDir=(await kvGet('cardDir'))||null;}catch(e){cardDir=null;}return cardDir;}
+async function pickCardDir(){
+  if(!window.showDirectoryPicker){$('csFile').click();return;}
+  try{const h=await showDirectoryPicker({id:'klazix-kad',mode:'read'});cardDir=h;cardSrc='dir';try{await kvSet('cardDir',h);}catch(e){}cardFiles=[];await refreshCard(true);}
+  catch(e){if(e.name!=='AbortError')toast(e.message,'x');}}
+async function cardPerm(h,ask){try{let p=await h.queryPermission({mode:'read'});if(p!=='granted'&&ask)p=await h.requestPermission({mode:'read'});return p==='granted';}catch(e){return false;}}
+async function listDir(dir,depth=0,out=[]){for await(const [name,h] of dir.entries()){if(name.startsWith('.'))continue;
+  if(h.kind==='file'){if(/\.(jpe?g|png|webp)$/i.test(name))out.push(await h.getFile());}else if(depth<4)await listDir(h,depth+1,out);}return out;}
+async function refreshCard(ask){
+  if(cardSrc==='files'&&!ask)return;
+  if(ask&&cardSrc==='files')cardSrc='dir';
+  const d=await loadCardDir();
+  if(!d){renderCardGrid();return;}
+  if(!(await cardPerm(d,ask))){renderCardGrid('perm');return;}
+  try{const files=await listDir(d);files.sort((a,b)=>b.lastModified-a.lastModified);
+    const top=files.slice(0,150);const changed=top.length!==cardFiles.length||(top[0]&&fkey(top[0]))!==(cardFiles[0]&&fkey(cardFiles[0]));
+    if(changed||ask){const fresh=cardFiles.length&&top.length>cardFiles.length;cardFiles=top;renderCardGrid();if(fresh&&!ask)toast('Gambar baharu dikesan','image');}}
+  catch(e){cardFiles=[];renderCardGrid('gone');}}
+$('csFile').onchange=()=>{const fs=[...$('csFile').files];$('csFile').value='';if(!fs.length)return;
+  fs.sort((a,b)=>b.lastModified-a.lastModified);cardSrc='files';cardFiles=fs;cardSel=cardSel.filter(f=>fs.some(x=>fkey(x)===fkey(f)));renderCardGrid();
+  if(fs.length===cardN){cardSel=fs.slice().reverse();renderCardGrid();}};
+function openCardSel(){
+  const t=tplById(S.mode)||TPL.find(x=>x.on);if(!t){toast('Tiada template aktif','x');return;}
+  cardN=Math.max(1,shotCount(t));cardSel=[];
+  $('csTitle').textContent=`Pilih ${cardN} gambar`;$('csSub').textContent=`${t.name} · sentuh gambar mengikut susunan${cardN>1?' (1 → '+cardN+')':''}`;
+  $('csDirBtn').style.display=window.showDirectoryPicker?'':'none';
+  go('cardsel');renderCardGrid();refreshCard(false);
+  clearInterval(cardPoll);cardPoll=setInterval(()=>{if($('cardsel').classList.contains('on')&&!$('csBusy').classList.contains('on'))refreshCard(false);},4000);}
+function cancelCard(){clearInterval(cardPoll);kioskOptions().length>1?go('pick'):go('start');}
+function renderCardGrid(state){
+  const g=$('csGrid');
+  if(!cardFiles.length){
+    const dirOK=!!window.showDirectoryPicker;
+    g.innerHTML=`<div class="csEmpty">${state==='perm'?'🔒 Tekan <b>Folder kad</b> untuk benarkan akses ke kad SD.':state==='gone'?'⚠️ Kad tidak dapat dibaca — masukkan semula kad, kemudian tekan <b>Folder kad</b>.':
+      dirOK?'💾 Masukkan kad SD ke card reader (atau sambung kamera dalam mod <b>USB CARD READER</b>),<br>kemudian tekan <b>Folder kad</b> dan pilih kad / folder DCIM.<br><small>Atau tekan <b>Pilih gambar</b> untuk pilih fail secara manual.</small>':
+      '📸 Tekan <b>Pilih gambar</b> dan pilih gambar dari Photos / Files.<br><small>iPad: import dahulu dari kad SD ke Photos.</small>'}</div>`;updatePicked();return;}
+  g.innerHTML='';
+  cardFiles.forEach(f=>{const k=fkey(f);const d=document.createElement('div');d.className='csT';d.dataset.k=k;
+    const tm=new Date(f.lastModified).toLocaleTimeString('ms-MY',{hour:'2-digit',minute:'2-digit'});
+    d.innerHTML=`<span class="no"></span><span class="tm">${tm}</span>`;d.onclick=()=>toggleCard(f);g.appendChild(d);
+    thumbInto(f,d);});
+  updateSelUI();}
+const thumbQ=[];let thumbBusy=false;
+function thumbInto(f,el){const k=fkey(f);if(thumbs.has(k)){el.prepend(thumbs.get(k).cloneNode?cloneThumb(thumbs.get(k)):thumbs.get(k));return;}thumbQ.push([f,el]);runThumbQ();}
+function cloneThumb(c){if(c.tagName==='IMG'){const i=new Image();i.src=c.src;return i;}const n=document.createElement('canvas');n.width=c.width;n.height=c.height;n.getContext('2d').drawImage(c,0,0);return n;}
+async function runThumbQ(){if(thumbBusy)return;thumbBusy=true;
+  while(thumbQ.length){const [f,el]=thumbQ.shift();const k=fkey(f);let node=thumbs.get(k);
+    if(!node){try{const b=await createImageBitmap(f,{resizeWidth:360,resizeQuality:'medium'});node=document.createElement('canvas');node.width=b.width;node.height=b.height;node.getContext('2d').drawImage(b,0,0);b.close&&b.close();}
+      catch(e){node=new Image();node.src=URL.createObjectURL(f);}
+      thumbs.set(k,node);if(thumbs.size>300)thumbs.delete(thumbs.keys().next().value);}
+    if(el.isConnected&&!el.querySelector('canvas,img'))el.prepend(cloneThumb(node));}
+  thumbBusy=false;updatePicked();}
+function toggleCard(f){const k=fkey(f),i=cardSel.findIndex(x=>fkey(x)===k);
+  if(i>=0)cardSel.splice(i,1);else{if(cardSel.length>=cardN){if(cardN===1)cardSel=[];else{toast(`Sudah ${cardN} gambar — sentuh gambar bernombor untuk buang`,'x');return;}}cardSel.push(f);}
+  updateSelUI();}
+function updateSelUI(){document.querySelectorAll('.csT').forEach(el=>{const i=cardSel.findIndex(x=>fkey(x)===el.dataset.k);el.classList.toggle('sel',i>=0);el.querySelector('.no').textContent=i>=0?i+1:'';});updatePicked();}
+function updatePicked(){const p=$('csPicked');p.innerHTML='';
+  for(let i=0;i<cardN;i++){const d=document.createElement('div');d.className='ps';const f=cardSel[i];
+    if(f&&thumbs.has(fkey(f)))d.appendChild(cloneThumb(thumbs.get(fkey(f))));else d.textContent=i+1;p.appendChild(d);}
+  $('csGo').disabled=cardSel.length!==cardN;}
+async function fileToCanvas(f){const b=await createImageBitmap(f);const sc=Math.min(1,3600/Math.max(b.width,b.height));
+  const c=document.createElement('canvas');c.width=Math.round(b.width*sc);c.height=Math.round(b.height*sc);c.getContext('2d').drawImage(b,0,0,c.width,c.height);b.close&&b.close();return c;}
+async function cardGo(){if(cardSel.length!==cardN||busy)return;busy=true;$('csBusy').classList.add('on');clearInterval(cardPoll);
+  try{const t=tplById(S.mode)||TPL.find(x=>x.on);const shots=[];for(const f of cardSel)shots.push(await fileToCanvas(f));
+    const c=finalCanvas(t,shots);const blob=await canvasBlob(c);
+    current={type:'image',blob,url:URL.createObjectURL(blob),tname:t.name,pw:c.width,ph:c.height};copies=Math.min(t.copies||1,S.maxCopies);
+    await saveCurrent();showReview();}
+  catch(e){console.error(e);toast('Gambar tidak dapat dibaca: '+e.message,'x');}
+  finally{$('csBusy').classList.remove('on');busy=false;}}
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&$('cardsel').classList.contains('on')&&!document.querySelector('.modal.on')&&!$('csGo').disabled)cardGo();});
+
 /* ======================= DSLR (pembantu MacBook) ======================= */
-const isDSLR=()=>S.camMode==='dslr';
+const isDSLR=()=>false; // mod DSLR dibuang — webcam sahaja
 const helperPrev=()=>isDSLR()&&S.dslrPreview==='helper';
 const hurl=p=>(S.helperUrl||'http://127.0.0.1:8737').replace(/\/+$/,'')+p;
 function dslrUI(){$('dslrBox')?.classList.toggle('on',isDSLR());document.body.classList.toggle('imgprev',helperPrev());}
@@ -1759,7 +1877,7 @@ function applyTheme(){
 }
 let idleT=null;
 function resetIdle(){clearTimeout(idleT);if(!S.idle||busy)return;const on=id=>$(id).classList.contains('on');
-  idleT=setTimeout(()=>{if((on('pick')||on('live'))&&!busy&&!document.querySelector('.modal.on'))go('start');},S.idle*1000);}
+  idleT=setTimeout(()=>{if((on('pick')||on('live')||on('cardsel'))&&!busy&&!document.querySelector('.modal.on'))go('start');},S.idle*1000);}
 document.addEventListener('keydown',e=>{if(document.querySelector('.modal.on'))return;if(e.code!=='Space'&&e.code!=='Enter')return;
   if($('start').classList.contains('on')){e.preventDefault();kioskBegin();}else if($('live').classList.contains('on')){e.preventDefault();startSession();}});
 async function keepAwake(){try{await navigator.wakeLock?.request('screen');}catch(e){}}
@@ -1773,10 +1891,11 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
     if(!TPL.length){S.migr1=S.migr2=true;TPL=['strip1','classic','strip3','grid','polaroid','trio','boom'].map(preset);TPL[5].on=false;TPL[6].on=false;S.boomTpl=TPL[6].id;await kvSet('templates',TPL);saveS();}
     if(!S.migr1){S.migr1=true;TPL.forEach(t=>{if(/^Strip 2×6/.test(t.name))t.on=false;});
       if(!TPL.some(t=>t.name.startsWith('Strip Filem')))TPL.splice(1,0,preset('strip3'));await kvSet('templates',TPL);saveS();}
+    if(!['webcam','card'].includes(S.camMode)){S.camMode='webcam';saveS();}
     if(!S.migr2){S.migr2=true;if(!TPL.some(t=>t.paper==='2x6'))TPL.unshift(preset('strip1'));await kvSet('templates',TPL);saveS();}
     await preloadImages();}catch(e){console.warn(e);}
   await ensureFonts();
-  applyTheme();if(!helperPrev())startCamera();keepAwake();
+  applyTheme();if(!isCard())startCamera();keepAwake();
   go(location.hash==='#booth'?'start':'admin');
 })();
 </script>
